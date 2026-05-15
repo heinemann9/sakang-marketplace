@@ -1,0 +1,22 @@
+{
+  "name": "sakang-marketplace",
+  "owner": {
+    "name": "heinemann9",
+    "email": "sinankng@gmail.com"
+  },
+  "description": "heinemann9의 Claude Code 플러그인 마켓플레이스",
+  "plugins": [
+    {
+      "name": "rs-fleet",
+      "source": "./plugins/rs-fleet",
+      "description": "git/SVN 레포별·다중 Claude Code 백그라운드 에이전트 런처와 정리 도구",
+      "version": "1.2.0",
+      "category": "automation",
+      "tags": ["background-agents", "fleet", "automation", "git", "svn"],
+      "author": {
+        "name": "heinemann9",
+        "email": "sinankng@gmail.com"
+      }
+    }
+  ]
+}
