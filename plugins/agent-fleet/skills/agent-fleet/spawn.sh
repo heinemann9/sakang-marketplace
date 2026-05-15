@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# rs-fleet spawn.sh - launch Claude Code background sessions for git repositories.
+# agent-fleet spawn.sh - launch Claude Code background sessions for git repositories.
 set -u
 
 usage() {
@@ -16,7 +16,7 @@ Examples:
   spawn.sh multi /Users/sakang/repo/webssh --count 4
   spawn.sh cleanup
   spawn.sh cleanup --prefix rvbox
-  spawn.sh cleanup --pattern '^rsfleet-rvbox-st-' --dry-run
+  spawn.sh cleanup --pattern '^agentfleet-rvbox-st-' --dry-run
 EOF
 }
 
@@ -61,14 +61,14 @@ resolve_claude_native() {
 }
 CLAUDE_NATIVE="$(resolve_claude_native)"
 
-PREFIX="rsfleet"
+PREFIX="agentfleet"
 FORCE_RESPAWN=0
 MAX_DEPTH=""
 COUNT=""
 ROOT=""
 TARGET_REPO=""
 ROSTER="$HOME/.claude/daemon/roster.json"
-WORKTREE_ROOT="$HOME/.claude/rs-fleet/worktrees"
+WORKTREE_ROOT="$HOME/.claude/agent-fleet/worktrees"
 DRY_RUN=0
 
 sanitize_name() {
@@ -365,9 +365,9 @@ case "$MODE" in
     [ -d "$ROOT" ] || die "root directory not found: $ROOT"
     ROOT="$(cd "$ROOT" && pwd)"
     PREFIX="$(sanitize_name "$PREFIX")"
-    [ -n "$PREFIX" ] || PREFIX="rsfleet"
+    [ -n "$PREFIX" ] || PREFIX="agentfleet"
 
-    echo "rs-fleet scan: $ROOT"
+    echo "agent-fleet scan: $ROOT"
     echo ""
 
     repos="$(discover_repos "$ROOT")"
@@ -430,9 +430,9 @@ case "$MODE" in
     REPO="$(vcs_top "$TARGET_REPO")" || die "not a git/svn working copy: $TARGET_REPO"
     repo_name="$(basename "$REPO")"
     PREFIX="$(sanitize_name "$PREFIX")"
-    [ -n "$PREFIX" ] || PREFIX="rsfleet"
+    [ -n "$PREFIX" ] || PREFIX="agentfleet"
 
-    echo "rs-fleet multi: $REPO ($COUNT agents)"
+    echo "agent-fleet multi: $REPO ($COUNT agents)"
     echo ""
 
     if [ "$PREFIX" = "$repo_name" ]; then
@@ -486,12 +486,12 @@ case "$MODE" in
     command -v jq >/dev/null 2>&1 || die "jq is required for cleanup"
 
     PREFIX="$(sanitize_name "$PREFIX")"
-    [ -n "$PREFIX" ] || PREFIX="rsfleet"
+    [ -n "$PREFIX" ] || PREFIX="agentfleet"
 
     if [ -n "$PATTERN" ]; then
-      echo "rs-fleet cleanup: pattern='$PATTERN'"
+      echo "agent-fleet cleanup: pattern='$PATTERN'"
     else
-      echo "rs-fleet cleanup: prefix='$PREFIX-'"
+      echo "agent-fleet cleanup: prefix='$PREFIX-'"
     fi
     echo ""
 

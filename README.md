@@ -13,7 +13,7 @@ Claude Code 안에서 다음 슬래시 명령으로 마켓플레이스를 등록
 그 다음, 원하는 플러그인을 설치합니다.
 
 ```text
-/plugin install rs-fleet@sakang-marketplace
+/plugin install agent-fleet@sakang-marketplace
 ```
 
 설치 이후 업데이트가 필요하면:
@@ -26,9 +26,9 @@ Claude Code 안에서 다음 슬래시 명령으로 마켓플레이스를 등록
 
 | 이름 | 설명 | 버전 |
 | :--- | :--- | :--- |
-| [`rs-fleet`](plugins/rs-fleet) | git/SVN 레포별·다중 Claude Code 백그라운드 에이전트 런처와 정리 도구 | 1.2.0 |
+| [`agent-fleet`](plugins/agent-fleet) | git/SVN 레포별·다중 Claude Code 백그라운드 에이전트 런처와 정리 도구 | 1.2.0 |
 
-### rs-fleet
+### agent-fleet
 
 git 또는 SVN 작업 사본에 대해 `claude --bg`로 독립적인 백그라운드 세션을 띄우고 일괄 정리하는 스킬입니다.
 
@@ -41,16 +41,16 @@ git 또는 SVN 작업 사본에 대해 `claude --bg`로 독립적인 백그라�
 설치 후 호출:
 
 ```text
-/rs-fleet:rs-fleet scan
-/rs-fleet:rs-fleet multi /path/to/repo --count 3
-/rs-fleet:rs-fleet cleanup
+/agent-fleet:agent-fleet scan
+/agent-fleet:agent-fleet multi /path/to/repo --count 3
+/agent-fleet:agent-fleet cleanup
 ```
 
 전제 조건:
 
 - `git` (필수), `svn` (SVN 작업 사본을 다룰 때만)
 - `jq` (cleanup 기능에 필요)
-- Claude Code 네이티브 바이너리 (`~/.local/share/claude/versions/<latest>/`) — 일부 wrapper(예: cmux.app)는 `claude rm` 같은 hidden 서브커맨드를 chat prompt로 잘못 라우팅하므로, 스크립트가 자동으로 네이티브 바이너리를 우선 사용합니다. 자세한 내용은 [SKILL.md](plugins/rs-fleet/skills/rs-fleet/SKILL.md)의 "네이티브 바이너리 vs PATH wrapper" 항목 참고.
+- Claude Code 네이티브 바이너리 (`~/.local/share/claude/versions/<latest>/`) — 일부 wrapper(예: cmux.app)는 `claude rm` 같은 hidden 서브커맨드를 chat prompt로 잘못 라우팅하므로, 스크립트가 자동으로 네이티브 바이너리를 우선 사용합니다. 자세한 내용은 [SKILL.md](plugins/agent-fleet/skills/agent-fleet/SKILL.md)의 "네이티브 바이너리 vs PATH wrapper" 항목 참고.
 
 ## 디렉토리 구조
 
@@ -59,11 +59,11 @@ sakang-marketplace/
 ├── .claude-plugin/
 │   └── marketplace.json          # 마켓플레이스 카탈로그
 ├── plugins/
-│   └── rs-fleet/
+│   └── agent-fleet/
 │       ├── .claude-plugin/
 │       │   └── plugin.json       # 플러그인 매니페스트
 │       └── skills/
-│           └── rs-fleet/
+│           └── agent-fleet/
 │               ├── SKILL.md
 │               └── spawn.sh
 └── README.md

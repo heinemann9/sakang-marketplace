@@ -1,5 +1,5 @@
 {
-  "name": "rs-fleet",
+  "name": "agent-fleet",
   "description": "git/SVN 레포별·다중 Claude Code 백그라운드 에이전트 런처와 정리 도구",
   "version": "1.2.0",
   "author": {

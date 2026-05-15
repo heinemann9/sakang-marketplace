@@ -1,12 +1,12 @@
 ---
-name: rs-fleet
+name: agent-fleet
 description: "Repository fleet launcher for git and SVN working copies. Scan subfolders from the current directory and start one Claude Code background agent per repo, start multiple background agents for one specific repo (each in an isolated worktree / svn checkout), or clean up previously spawned background agents. Use when the user asks to spawn/manage/cleanup agents for many repositories or multiple agents for a single repository."
 user-invocable: true
 argument-hint: "scan [root] [--max-depth N] [--prefix NAME] [--dry-run] [--force-respawn] | multi <repo> --count N [--prefix NAME] [--dry-run] [--force-respawn] | cleanup [--prefix NAME] [--pattern REGEX] [--dry-run]"
 allowed-tools: Read, Bash(git:*), Bash(svn:*), Bash(bash:*), Bash(claude:*), Bash(find:*), Bash(jq:*), Bash(sort:*), Bash(awk:*), Bash(sed:*)
 ---
 
-# RS Fleet
+# Agent Fleet
 
 git 또는 SVN 작업 사본에 대해 `claude --bg`로 독립적인 Claude Code 백그라운드 세션을 띄우고 정리한다.
 
@@ -25,17 +25,17 @@ git 또는 SVN 작업 사본에 대해 `claude --bg`로 독립적인 Claude Code
 - "현재 폴더 아래 git repo마다 agent 띄워줘"
 - "서브 폴더 검색해서 레포별로 agent 하나씩 실행"
 - "특정 repo에 agent 여러 개 띄워줘"
-- "rsfleet으로 띄운 세션들 정리해줘"
-- "rs-fleet", "repo agents", "multi agent for repo"
+- "agentfleet으로 띄운 세션들 정리해줘"
+- "agent-fleet", "repo agents", "multi agent for repo"
 
 ## 명령 개요
 
 스킬 디렉토리의 번들 스크립트를 실행한다.
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh scan
-bash ~/.claude/skills/rs-fleet/spawn.sh multi /path/to/repo --count 3
-bash ~/.claude/skills/rs-fleet/spawn.sh cleanup
+bash ~/.claude/skills/agent-fleet/spawn.sh scan
+bash ~/.claude/skills/agent-fleet/spawn.sh multi /path/to/repo --count 3
+bash ~/.claude/skills/agent-fleet/spawn.sh cleanup
 ```
 
 ## Mode 1: 하위 폴더 스캔 후 레포당 에이전트 1개
@@ -43,22 +43,22 @@ bash ~/.claude/skills/rs-fleet/spawn.sh cleanup
 루트 경로 기본값은 현재 작업 디렉토리.
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh scan
+bash ~/.claude/skills/agent-fleet/spawn.sh scan
 ```
 
 루트 경로를 명시할 때:
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh scan /Users/sakang/repo
+bash ~/.claude/skills/agent-fleet/spawn.sh scan /Users/sakang/repo
 ```
 
 자주 쓰는 옵션:
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh scan . --max-depth 3
-bash ~/.claude/skills/rs-fleet/spawn.sh scan . --prefix repo
-bash ~/.claude/skills/rs-fleet/spawn.sh scan . --dry-run
-bash ~/.claude/skills/rs-fleet/spawn.sh scan . --force-respawn
+bash ~/.claude/skills/agent-fleet/spawn.sh scan . --max-depth 3
+bash ~/.claude/skills/agent-fleet/spawn.sh scan . --prefix repo
+bash ~/.claude/skills/agent-fleet/spawn.sh scan . --dry-run
+bash ~/.claude/skills/agent-fleet/spawn.sh scan . --force-respawn
 ```
 
 **동작**
@@ -67,39 +67,39 @@ bash ~/.claude/skills/rs-fleet/spawn.sh scan . --force-respawn
 - 각 작업 사본의 최상위 경로마다 백그라운드 세션 1개를 띄운다.
 - `svn`이 PATH에 없으면 SVN 탐색은 건너뛴다.
 - 세션 이름 포맷: `<prefix>-<repo-name>` (prefix와 repo-name이 같으면 중복 제거)
-- 기본 prefix: `rsfleet`
+- 기본 prefix: `agentfleet`
 - 같은 이름의 세션이 이미 있으면 스킵한다.
 - `--force-respawn`은 기존 세션을 중지하고 다시 띄운다.
 
 ## Mode 2: 한 레포에 에이전트 N개
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh multi /path/to/repo --count 4
+bash ~/.claude/skills/agent-fleet/spawn.sh multi /path/to/repo --count 4
 ```
 
 레포 내부에서 실행할 때:
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh multi . --count 4
+bash ~/.claude/skills/agent-fleet/spawn.sh multi . --count 4
 ```
 
 자주 쓰는 옵션:
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh multi /path/to/repo --count 4 --prefix webssh
-bash ~/.claude/skills/rs-fleet/spawn.sh multi /path/to/repo --count 4 --dry-run
-bash ~/.claude/skills/rs-fleet/spawn.sh multi /path/to/repo --count 4 --force-respawn
+bash ~/.claude/skills/agent-fleet/spawn.sh multi /path/to/repo --count 4 --prefix webssh
+bash ~/.claude/skills/agent-fleet/spawn.sh multi /path/to/repo --count 4 --dry-run
+bash ~/.claude/skills/agent-fleet/spawn.sh multi /path/to/repo --count 4 --force-respawn
 ```
 
 **동작**
 
 - 대상 폴더가 git 작업 트리 또는 SVN 작업 사본 안에 있는지 확인한다.
 - 실제 작업 사본 최상위 경로를 해석한다 (`git rev-parse --show-toplevel` 또는 `svn info --show-item wc-root`).
-- 각 세션마다 `~/.claude/rs-fleet/worktrees/<session-name>`에 격리된 워크트리를 만든다.
+- 각 세션마다 `~/.claude/agent-fleet/worktrees/<session-name>`에 격리된 워크트리를 만든다.
   - git: `git worktree add --detach <wt> HEAD`
   - svn: `svn checkout <wc-url> <wt>` (새 작업 사본)
 - 세션 이름 포맷: `<prefix>-<repo-name>-NN` (prefix와 repo-name이 같으면 `<prefix>-NN`으로 축약)
-- 기본 prefix: `rsfleet`
+- 기본 prefix: `agentfleet`
 - `--count`는 최대 50까지 허용한다.
 
 ## Mode 3: 띄운 에이전트 정리
@@ -107,23 +107,23 @@ bash ~/.claude/skills/rs-fleet/spawn.sh multi /path/to/repo --count 4 --force-re
 이 스킬로 띄운 백그라운드 세션들을 정지하고 roster/jobs에서 완전히 제거한다.
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh cleanup
+bash ~/.claude/skills/agent-fleet/spawn.sh cleanup
 ```
 
 자주 쓰는 옵션:
 
 ```bash
-bash ~/.claude/skills/rs-fleet/spawn.sh cleanup --prefix rvbox
-bash ~/.claude/skills/rs-fleet/spawn.sh cleanup --pattern '^rsfleet-rvbox-st-' --dry-run
+bash ~/.claude/skills/agent-fleet/spawn.sh cleanup --prefix rvbox
+bash ~/.claude/skills/agent-fleet/spawn.sh cleanup --pattern '^agentfleet-rvbox-st-' --dry-run
 ```
 
 **동작**
 
 - `~/.claude/daemon/roster.json`을 읽어 활성 백그라운드 세션과 이름을 수집한다.
-- 기본적으로 이름이 `<prefix>-`로 시작하는 세션을 매칭한다(기본 prefix `rsfleet`).
+- 기본적으로 이름이 `<prefix>-`로 시작하는 세션을 매칭한다(기본 prefix `agentfleet`).
 - `--pattern REGEX`를 주면 prefix 필터 대신 확장 정규식으로 이름을 매칭한다.
 - 각 매칭에 대해 `claude stop <short>` 후 `claude rm <short>`를 실행한다. `rm`은 세션을 roster에서 완전히 제거하고 worktree를 정리하는 공식 명령이다(Claude Code agent-view 문서 참고).
-- 세션 제거 후 `~/.claude/rs-fleet/worktrees/<session-name>`의 워크트리도 정리한다.
+- 세션 제거 후 `~/.claude/agent-fleet/worktrees/<session-name>`의 워크트리도 정리한다.
   - git 워크트리: `git worktree remove` (uncommitted 변경 있으면 보존)
   - svn 체크아웃: `svn status`가 비어 있으면 `rm -rf`, 그 외에는 보존
 - `--dry-run`은 제거 대상만 출력한다.
