@@ -1,0 +1,10 @@
+{
+  "name": "team-pipeline",
+  "description": "설계→구현→리뷰→테스트 단계별 팀(팀장 opus + 팀원 sonnet)을 자동으로 구성·해체하며 작업을 진행하는 파이프라인 스킬",
+  "version": "0.1.0",
+  "author": {
+    "name": "heinemann9",
+    "email": "sinankng@gmail.com"
+  },
+  "keywords": ["team", "pipeline", "orchestration", "teammates", "workflow"]
+}
