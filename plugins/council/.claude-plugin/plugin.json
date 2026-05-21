@@ -1,0 +1,10 @@
+{
+  "name": "council",
+  "description": "4관점 anti-anchoring 의사결정 스킬 — Architect/Skeptic/Pragmatist/Critic 4명의 독립 sub-agent를 병렬 실행하여 합의·분기 추출",
+  "version": "0.1.0",
+  "author": {
+    "name": "heinemann9",
+    "email": "sinankng@gmail.com"
+  },
+  "keywords": ["council", "decision", "anti-anchoring", "architect", "skeptic", "pragmatist", "critic"]
+}

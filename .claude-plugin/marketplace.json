@@ -19,12 +19,72 @@
       }
     },
     {
+      "name": "dev",
+      "source": "./plugins/dev",
+      "description": "개발 작업 입구 디스패처. 프롬프트를 분류해 solo-pipeline / team-pipeline(flex) / team-flat 중 적합한 모드로 안내",
+      "version": "0.1.0",
+      "category": "workflow",
+      "tags": ["dispatcher", "pipeline", "workflow", "entry-point"],
+      "author": {
+        "name": "heinemann9",
+        "email": "sinankng@gmail.com"
+      }
+    },
+    {
+      "name": "solo-pipeline",
+      "source": "./plugins/solo-pipeline",
+      "description": "설계→구현→리뷰→테스트 4단계를 단계별 역할 전문 sub-agent 1명씩으로 자가 수행하는 비용 효율형 파이프라인 (Architect/Reviewer=opus, Coder/Tester=sonnet)",
+      "version": "0.1.0",
+      "category": "workflow",
+      "tags": ["pipeline", "solo", "architect", "coder", "reviewer", "tester"],
+      "author": {
+        "name": "heinemann9",
+        "email": "sinankng@gmail.com"
+      }
+    },
+    {
       "name": "team-pipeline",
       "source": "./plugins/team-pipeline",
-      "description": "설계→구현→리뷰→테스트 단계별 팀(팀장 opus + 팀원 sonnet)을 자동으로 구성·해체하며 작업을 진행하는 파이프라인 스킬",
+      "description": "설계→구현→리뷰→테스트 4단계 가변 인원 파이프라인. 단계별 1~N명을 메인이 자동 산정, N=1은 단일 sub-agent / N≥2는 팀(opus 팀장 + sonnet 팀원)",
+      "version": "0.4.0",
+      "category": "workflow",
+      "tags": ["team", "pipeline", "orchestration", "teammates", "flex"],
+      "author": {
+        "name": "heinemann9",
+        "email": "sinankng@gmail.com"
+      }
+    },
+    {
+      "name": "prd",
+      "source": "./plugins/prd",
+      "description": "PRD 작성(prd-generator)과 PRD 간 충돌 검증(prd-validator) 서브에이전트를 함께 제공하는 기획 품질 보증 플러그인",
       "version": "0.1.0",
-      "category": "automation",
-      "tags": ["team", "pipeline", "orchestration", "workflow"],
+      "category": "planning",
+      "tags": ["prd", "planning", "product", "validator"],
+      "author": {
+        "name": "heinemann9",
+        "email": "sinankng@gmail.com"
+      }
+    },
+    {
+      "name": "council",
+      "source": "./plugins/council",
+      "description": "4관점 anti-anchoring 의사결정 — Architect/Skeptic/Pragmatist/Critic 4명의 sub-agent를 독립 병렬 실행하여 합의·분기를 추출",
+      "version": "0.1.0",
+      "category": "decision",
+      "tags": ["council", "decision", "anti-anchoring", "architect", "skeptic", "pragmatist", "critic"],
+      "author": {
+        "name": "heinemann9",
+        "email": "sinankng@gmail.com"
+      }
+    },
+    {
+      "name": "docs",
+      "source": "./plugins/docs",
+      "description": "문서-코드 정합성 유지 스킬 세트 — docs-audit(LINK/PLAN/SCRIPT 3트랙 정형 드리프트 전수 감사) + docs-sync(git diff 기반 의미 변경 → 문서 갱신 후보 제시)",
+      "version": "0.1.0",
+      "category": "documentation",
+      "tags": ["docs", "audit", "consistency", "sync", "drift", "documentation"],
       "author": {
         "name": "heinemann9",
         "email": "sinankng@gmail.com"

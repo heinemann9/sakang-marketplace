@@ -1,0 +1,10 @@
+{
+  "name": "docs",
+  "description": "문서-코드 정합성 유지 스킬 세트 — docs-audit(LINK/PLAN/SCRIPT 3트랙 정형 드리프트 전수 감사) + docs-sync(git diff 기반 의미 변경 → 문서 갱신 후보 제시)",
+  "version": "0.1.0",
+  "author": {
+    "name": "heinemann9",
+    "email": "sinankng@gmail.com"
+  },
+  "keywords": ["docs", "audit", "consistency", "sync", "drift", "documentation"]
+}

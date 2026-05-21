@@ -1,0 +1,10 @@
+{
+  "name": "dev",
+  "description": "개발 작업 입구 디스패처. 사용자 프롬프트를 분류해 solo-pipeline / team-pipeline(flex) / team-flat 중 적합한 파이프라인으로 위임하는 얇은 진입점.",
+  "version": "0.1.0",
+  "author": {
+    "name": "heinemann9",
+    "email": "sinankng@gmail.com"
+  },
+  "keywords": ["dispatcher", "pipeline", "workflow", "entry-point"]
+}

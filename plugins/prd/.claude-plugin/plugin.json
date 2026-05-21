@@ -1,0 +1,10 @@
+{
+  "name": "prd",
+  "description": "PRD 작성(prd-generator)과 PRD 간 충돌 검증(prd-validator)을 함께 제공하는 기획 품질 보증 에이전트 세트",
+  "version": "0.1.0",
+  "author": {
+    "name": "heinemann9",
+    "email": "sinankng@gmail.com"
+  },
+  "keywords": ["prd", "planning", "product", "validator"]
+}
