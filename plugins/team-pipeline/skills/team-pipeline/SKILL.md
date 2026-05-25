@@ -52,6 +52,10 @@ allowed-tools: Read, Write, Edit, Bash, Agent, AskUserQuestion, ToolSearch
      - `그대로 진행 (Recommended)` — 산정 그대로, 이후 자동 조정 허용
      - `조정` — 사용자가 단계별 인원 수동 입력
      - `취소` — 본 스킬 종료
+4b. **Acceptance Criteria 입력 AUQ** (인원 산정 확정 직후 별도 질문):
+   - 질문: `"이번 작업의 명시적 성공 조건 2~5개를 적어주세요. Tester는 이 항목을 1:1로 매핑해 verdict를 판정합니다."`
+   - 사용자가 비우면 메인이 입력 프롬프트에서 1차 자동 추출 → 사용자 확인.
+   - 결과는 `00-task.md`의 `## Acceptance Criteria` 섹션에 박힘. 모든 단계 위임 프롬프트의 "이번 단계 목표" 위에 그대로 포함된다.
 5. `--*` 명시값이 있으면 1차 산정을 덮어씀. AUQ는 여전히 띄움.
 6. **단계 1 종료 후 (2차 재산정)는 AUQ 없이 자동 적용** — 사용자는 단계 0에서 한 번만 확정. stdout 1줄 알림으로 가시성만 확보.
 7. `--dry-run`이면 산정 결과만 출력하고 종료.
@@ -134,9 +138,9 @@ Agent({
 ├── 02-impl/
 │   ├── impl-summary.md
 │   └── diff.patch
-├── 03-review/review.md        # verdict, issues[], severity, target_phase
-├── 04-test/test.md            # verdict, 단위 테스트 결과, 재현 명령
-└── pipeline.log               # 단계 전이 로그 + N 기록
+├── 03-review/review.md        # verdict, issues[], severity, target_phase, claim_vs_diff 매핑 표
+├── 04-test/test.md            # verdict, AC-N별 pass/fail 표, 재현 명령 + raw stdout/stderr 캡처
+└── pipeline.log               # 단계 전이 로그 + N 기록 + MAST 카운터
 ```
 
 ### 자기 완결적 위임 프롬프트 (N=1 / N≥2 공통)
@@ -144,6 +148,9 @@ Agent({
 ```
 Task: <작업 설명>
 Run ID: <run-id>
+Acceptance Criteria (Tester verdict 기준):
+  - AC-1: ...
+  - AC-2: ...
 이전 단계 산출물: <파일 경로 목록>
 이번 단계 목표: <한 줄>
 산출물 저장 경로: <경로>
@@ -151,6 +158,8 @@ Run ID: <run-id>
   - 검증 후 완료 / 근본원인 / URL 추측 금지 / context7 우선
   - git commit·worklog 직접 호출 금지
   - 시크릿 격리 (.env 등 커밋 금지)
+  - (Reviewer 한정) input sanity check 필수: `02-impl/impl-summary.md`의 Coder 주장과 `02-impl/diff.patch`의 실제 hunk를 1:1 매핑한 표를 `review.md` 최상단에 첨부. 주장만 있고 diff 없음 = `reasoning_action_mismatch` (HIGH), diff만 있고 주장 없음 = `undocumented_change` (MEDIUM). 매핑 표 누락 시 review.md 무효 (자동 fail).
+  - (Tester 한정) 모든 verdict 항목에 재현 명령 + 실제 stdout/stderr raw 캡처를 `04-test/test.md`에 첨부. AC-N별 pass/fail 표 필수. 캡처·표 누락 시 verdict 무효 (자동 fail).
 ```
 
 ---
@@ -159,6 +168,9 @@ Run ID: <run-id>
 
 ### 3-1. 결과 판독
 
+- **verdict 환각 검증** (메인 책임):
+  - `review.md` 최상단에 `claim_vs_diff` 매핑 표 존재 여부 grep. 누락 → Reviewer 재실행.
+  - `test.md`에 AC-N별 pass/fail 표 + 각 AC의 재현 명령 raw 캡처 존재 여부 grep. 누락 → Tester 재실행. 표상 pass인데 raw에 에러 문자열 발견 시 자동 fail로 강등.
 - Reviewer/Tester `verdict: pass` → 다음 단계 또는 단계 4
 - Reviewer 이슈 → 3-2 심각도 매트릭스
 - Tester FAIL → BUG 분류 후 Coder 단계 재호출 (카운터 합산)
@@ -175,6 +187,8 @@ Run ID: <run-id>
 ### 3-3. 재검사 (컨텍스트 최적화)
 
 - `[→Coder]` 이슈: Coder 단계 재실행 → 이전 Handoff + 이슈 목록 + diff만 전달. 즉시 경량 재검사 (이전 이슈 해결 여부만).
+  - 재실행 위임 프롬프트 첫 줄에 강제: `"먼저 직전 시도와 이번 접근의 차이 3줄을 출력하고 시작하세요. 차이가 비어 있거나 '이슈를 수정합니다' 같은 동어반복이면 즉시 중단하고 'NO_DIFF' 보고."`
+  - Coder가 `NO_DIFF` 보고 시 → 3-4 에스컬레이션으로 즉시 이동.
 - `[→Architect]` 이슈: Architect 재실행 → Coder 재실행 → Reviewer부터 재시작.
 - 재실행 시 인원은 직전 확정값 유지 (자동 산정 다시 안 함).
 
@@ -231,6 +245,23 @@ AUQ: "코드 변경을 커밋할까요?"
 [Critical] 통합·사용성·릴리즈 QA는 사람 2일/2명+ 별도 진행.
 Tester ALL PASS는 단위 테스트만 의미합니다.
 ```
+
+---
+
+## MAST 카운터 자동 집계
+
+`pipeline.log` 말미에 단계 종료 때마다 갱신:
+
+```yaml
+mast_counters:
+  step_repetition: <Coder 재실행 횟수>
+  reasoning_action_mismatch: <review.md issue 중 type=reasoning_action_mismatch 개수>
+  unaware_of_termination: <Tester 캡처/AC표 누락으로 무효화된 횟수>
+  hallucination_propagation: <Reviewer가 검출한 prior-stage 모순(claim_vs_diff 불일치) 개수>
+  no_diff_escalation: <Coder NO_DIFF 보고 횟수>
+```
+
+월 1회 `find ~/.claude/team-pipeline -name pipeline.log -exec grep -A5 mast_counters {} +`로 통계 확인. 빈발 모드 = 워크플로우 약점.
 
 ---
 

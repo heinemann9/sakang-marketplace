@@ -2,7 +2,7 @@
 name: agent-fleet
 description: "Repository fleet launcher for git and SVN working copies. Scan subfolders from the current directory and start one Claude Code background agent per repo, start multiple background agents for one specific repo (each in an isolated worktree / svn checkout), or clean up previously spawned background agents. Use when the user asks to spawn/manage/cleanup agents for many repositories or multiple agents for a single repository."
 user-invocable: true
-argument-hint: "scan [root] [--max-depth N] [--prefix NAME] [--dry-run] [--force-respawn] | multi <repo> --count N [--prefix NAME] [--dry-run] [--force-respawn] | cleanup [--prefix NAME] [--pattern REGEX] [--dry-run]"
+argument-hint: "scan [root] [--max-depth N] [--prefix NAME] [--worktree|--no-worktree] [--dry-run] [--force-respawn] | multi <repo> --count N [--prefix NAME] [--worktree|--no-worktree] [--dry-run] [--force-respawn] | cleanup [--prefix NAME] [--pattern REGEX] [--dry-run]"
 allowed-tools: Read, Bash(git:*), Bash(svn:*), Bash(bash:*), Bash(claude:*), Bash(find:*), Bash(jq:*), Bash(sort:*), Bash(awk:*), Bash(sed:*)
 ---
 
@@ -65,6 +65,9 @@ bash ~/.claude/skills/agent-fleet/spawn.sh scan . --force-respawn
 
 - `.git` 또는 `.svn` 디렉토리를 가진 폴더를 찾는다. `.git`/`.svn` 내부는 탐색 대상에서 제외한다.
 - 각 작업 사본의 최상위 경로마다 백그라운드 세션 1개를 띄운다.
+- 격리 모드:
+  - **기본 (`--no-worktree`)**: 레포 최상위에서 in-place 실행. 사용자 미커밋 변경과 같은 작업 트리를 공유.
+  - **`--worktree`**: 레포마다 `~/.claude/agent-fleet/worktrees/<session-name>`에 격리된 워크트리/체크아웃을 만들고 그 안에서 실행. scan 대상이 많거나 동시 편집 충돌이 우려될 때 사용.
 - `svn`이 PATH에 없으면 SVN 탐색은 건너뛴다.
 - 세션 이름 포맷: `<prefix>-<repo-name>` (prefix와 repo-name이 같으면 중복 제거)
 - 기본 prefix: `agentfleet`
@@ -95,9 +98,11 @@ bash ~/.claude/skills/agent-fleet/spawn.sh multi /path/to/repo --count 4 --force
 
 - 대상 폴더가 git 작업 트리 또는 SVN 작업 사본 안에 있는지 확인한다.
 - 실제 작업 사본 최상위 경로를 해석한다 (`git rev-parse --show-toplevel` 또는 `svn info --show-item wc-root`).
-- 각 세션마다 `~/.claude/agent-fleet/worktrees/<session-name>`에 격리된 워크트리를 만든다.
-  - git: `git worktree add --detach <wt> HEAD`
-  - svn: `svn checkout <wc-url> <wt>` (새 작업 사본)
+- 격리 모드:
+  - **기본 (`--worktree`)**: 세션마다 `~/.claude/agent-fleet/worktrees/<session-name>`에 격리된 워크트리/체크아웃을 만든다.
+    - git: `git worktree add --detach <wt> HEAD`
+    - svn: `svn checkout <wc-url> <wt>` (새 작업 사본)
+  - **`--no-worktree`**: 모든 세션이 원본 작업 사본에서 동작. 동일 파일 동시 편집 위험 — 사용자가 작업 분담을 명확히 한 경우(폴더별/모듈별 분담)에만 사용.
 - 세션 이름 포맷: `<prefix>-<repo-name>-NN` (prefix와 repo-name이 같으면 `<prefix>-NN`으로 축약)
 - 기본 prefix: `agentfleet`
 - `--count`는 최대 50까지 허용한다.
@@ -165,6 +170,7 @@ claude logs <session-name>     # 최근 출력 확인
 - 쉘 rc 파일을 수정하거나 alias를 자동 설치하지 않는다.
 - `~/.claude/daemon/roster.json`을 읽어 같은 이름의 세션 중복 생성을 피한다.
 - `--force-respawn`은 매칭 세션을 `claude stop`으로 정지하고 새로 띄운다 — 기존 standby 세션을 의도적으로 교체할 때만 사용한다.
+- `--no-worktree`로 동일 작업 사본에 여러 세션을 띄울 경우 파일 충돌·미커밋 변경 소실 책임은 사용자에게 있다. `git status`/`svn status`를 자주 확인.
 - **⚠️ `PATH`의 `claude`가 wrapper(cmux.app 등)이면 `rm`/`stop`/`respawn` 같은 hidden 서브커맨드를 chat prompt로 오인 처리해 사용량을 소비할 수 있다.** 스크립트는 네이티브 바이너리를 자동 탐지하지만, **셸에서 직접 관리 명령을 칠 때는 네이티브 경로를 명시**해야 안전하다. 자세한 내용은 Mode 3의 "네이티브 바이너리 vs PATH wrapper" 절 참고.
 
 ## 트러블슈팅

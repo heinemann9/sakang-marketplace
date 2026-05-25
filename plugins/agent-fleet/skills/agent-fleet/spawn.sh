@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# agent-fleet spawn.sh - launch Claude Code background sessions for git repositories.
+# rs-fleet spawn.sh - launch Claude Code background sessions for git repositories.
 set -u
 
 usage() {
   cat <<'EOF'
 Usage:
-  spawn.sh scan [root] [--max-depth N] [--prefix NAME] [--dry-run] [--force-respawn]
-  spawn.sh multi <repo> --count N [--prefix NAME] [--dry-run] [--force-respawn]
+  spawn.sh scan [root] [--max-depth N] [--prefix NAME] [--worktree|--no-worktree] [--dry-run] [--force-respawn]
+  spawn.sh multi <repo> --count N [--prefix NAME] [--worktree|--no-worktree] [--dry-run] [--force-respawn]
   spawn.sh cleanup [--prefix NAME] [--pattern REGEX] [--dry-run]
 
 Examples:
@@ -66,9 +66,10 @@ FORCE_RESPAWN=0
 MAX_DEPTH=""
 COUNT=""
 ROOT=""
+WORKTREE_FLAG=""  # empty=use mode default; 0=no-worktree; 1=worktree
 TARGET_REPO=""
 ROSTER="$HOME/.claude/daemon/roster.json"
-WORKTREE_ROOT="$HOME/.claude/agent-fleet/worktrees"
+WORKTREE_ROOT="$HOME/.claude/rs-fleet/worktrees"
 DRY_RUN=0
 
 sanitize_name() {
@@ -90,6 +91,14 @@ parse_common_arg() {
       ;;
     --dry-run)
       DRY_RUN=1
+      return 1
+      ;;
+    --worktree)
+      WORKTREE_FLAG=1
+      return 1
+      ;;
+    --no-worktree)
+      WORKTREE_FLAG=0
       return 1
       ;;
     *)
@@ -349,7 +358,7 @@ case "$MODE" in
           MAX_DEPTH="$2"
           shift 2
           ;;
-        --prefix|--force-respawn|--dry-run)
+        --prefix|--force-respawn|--dry-run|--worktree|--no-worktree)
           parse_common_arg "$@" || consumed=$?
           consumed=${consumed:-0}
           [ "$consumed" -gt 0 ] || die "unknown argument: $1"
@@ -385,7 +394,8 @@ case "$MODE" in
         session_name="$(sanitize_name "$PREFIX-$repo_name")"
       fi
       prompt="Standby for repository '$repo_name' at '$repo'. Inspect the repository only when the user gives a concrete task. Do not modify files until asked."
-      if spawn_agent "$repo" "$session_name" "$prompt"; then
+      use_wt="${WORKTREE_FLAG:-0}"
+      if spawn_agent "$repo" "$session_name" "$prompt" "$use_wt"; then
         spawned=$((spawned + 1))
       else
         rc=$?
@@ -410,7 +420,7 @@ case "$MODE" in
           COUNT="$2"
           shift 2
           ;;
-        --prefix|--force-respawn|--dry-run)
+        --prefix|--force-respawn|--dry-run|--worktree|--no-worktree)
           parse_common_arg "$@" || consumed=$?
           consumed=${consumed:-0}
           [ "$consumed" -gt 0 ] || die "unknown argument: $1"
@@ -445,8 +455,13 @@ case "$MODE" in
     while [ "$i" -le "$COUNT" ]; do
       suffix="$(printf '%02d' "$i")"
       session_name="$(sanitize_name "$base_name-$suffix")"
-      prompt="Standby agent $suffix for repository '$repo_name'. You are operating in an isolated git worktree (detached HEAD). Coordinate through user instructions. Do not modify files until assigned a concrete task."
-      if spawn_agent "$REPO" "$session_name" "$prompt" 1; then
+      use_wt="${WORKTREE_FLAG:-1}"
+      if [ "$use_wt" = "1" ]; then
+        prompt="Standby agent $suffix for repository '$repo_name'. You are operating in an isolated git worktree (detached HEAD). Coordinate through user instructions. Do not modify files until assigned a concrete task."
+      else
+        prompt="Standby agent $suffix for repository '$repo_name'. You share the working copy with sibling agents — coordinate file ownership through user instructions. Do not modify files until assigned a concrete task."
+      fi
+      if spawn_agent "$REPO" "$session_name" "$prompt" "$use_wt"; then
         spawned=$((spawned + 1))
       else
         rc=$?
@@ -489,9 +504,9 @@ case "$MODE" in
     [ -n "$PREFIX" ] || PREFIX="agentfleet"
 
     if [ -n "$PATTERN" ]; then
-      echo "agent-fleet cleanup: pattern='$PATTERN'"
+      echo "rs-fleet cleanup: pattern='$PATTERN'"
     else
-      echo "agent-fleet cleanup: prefix='$PREFIX-'"
+      echo "rs-fleet cleanup: prefix='$PREFIX-'"
     fi
     echo ""
 
