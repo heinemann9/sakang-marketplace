@@ -246,6 +246,19 @@ AUQ: "코드 변경을 커밋할까요?"
 Tester ALL PASS는 단위 테스트만 의미합니다.
 ```
 
+### 4-4. 산출물 정리 AUQ
+
+`.claude/team-pipeline/<run-id>/`는 untracked로 누적되어 워킹트리를 흐리므로 스킬 종료 시점에 사용자에게 정리 의사를 묻는다. (월 1회 MAST 카운터 통계용으로 일부 보존 가치는 있으나, 기본 정책은 "정리 우선".)
+
+AUQ:
+  - `현재 run-id만 삭제 (Recommended)` — 이번 실행 산출물(`<run-id>/`) 디렉터리를 제거. 다른 run-id는 유지.
+  - `모든 run-id 삭제` — `.claude/team-pipeline/` 하위 전체 정리. MAST 카운터 이력 손실.
+  - `보존` — 그대로 둠. 사용자가 `find ~/.claude -name pipeline.log` 로 직접 집계 예정인 경우.
+
+안전망:
+  - 4-2에서 사용자가 `미커밋 유지`를 선택했고 산출물 중 `diff.patch`가 유일한 변경 백업이면, AUQ의 기본값을 `보존`으로 전환하고 "diff.patch가 유일한 백업입니다" 경고를 stdout에 명시한다.
+  - 사용자가 4-2에서 커밋을 마쳤거나 미커밋도 워킹트리에 그대로 살아있으면 `현재 run-id만 삭제`가 안전.
+
 ---
 
 ## MAST 카운터 자동 집계
